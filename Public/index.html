@@ -1,1 +1,29 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LuminasOS</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="logo"> LuminasOS</div>
+    <div id="clock"></div>
+  </div>
+
+  <!-- Desktop -->
+  <div class="desktop" id="desktop"></div>
+
+  <!-- Dock -->
+  <div class="dock">
+    <div class="dock-icon" onclick="openApp('Finder')">📁</div>
+    <div class="dock-icon" onclick="openApp('Terminal')">💻</div>
+    <div class="dock-icon" onclick="openApp('Réglages')">⚙️</div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
