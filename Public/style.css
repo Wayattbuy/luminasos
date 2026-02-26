@@ -1,0 +1,93 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: linear-gradient(135deg, #1e1e1e, #0f0f0f);
+  color: white;
+  overflow: hidden;
+}
+
+/* Top Bar */
+.topbar {
+  height: 30px;
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(10px);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 15px;
+  font-size: 14px;
+}
+
+/* Desktop */
+.desktop {
+  position: absolute;
+  top: 30px;
+  bottom: 90px;
+  width: 100%;
+}
+
+/* Dock */
+.dock {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(20px);
+  padding: 15px 30px;
+  border-radius: 30px;
+  display: flex;
+  gap: 25px;
+}
+
+.dock-icon {
+  font-size: 32px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.dock-icon:hover {
+  transform: scale(1.3);
+}
+
+/* Window */
+.window {
+  position: absolute;
+  width: 420px;
+  height: 260px;
+  background: rgba(30,30,30,0.95);
+  border-radius: 16px;
+  box-shadow: 0 25px 60px rgba(0,0,0,0.7);
+  overflow: hidden;
+  animation: open 0.2s ease;
+}
+
+@keyframes open {
+  from { transform: scale(0.8); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+.window-header {
+  height: 30px;
+  background: rgba(255,255,255,0.05);
+  display: flex;
+  align-items: center;
+  padding: 0 10px;
+  gap: 8px;
+  cursor: move;
+}
+
+.btn {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.red { background: #ff5f57; }
+.yellow { background: #febc2e; }
+.green { background: #28c840; }
+
+.window-content {
+  padding: 15px;
+  font-size: 14px;
+}
