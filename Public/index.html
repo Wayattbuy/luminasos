@@ -1,29 +1,303 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>LuminasOS</title>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LuminasOS</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+  background:linear-gradient(135deg,#1e1e1e,#0f0f0f);
+  color:white;
+  overflow:hidden;
+}
+.hidden{display:none}
+
+/* Boot */
+#boot{
+  position:fixed;inset:0;background:black;
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  z-index:9999;
+}
+.boot-bar{width:220px;height:6px;background:#333;border-radius:4px;overflow:hidden;margin-top:20px}
+.boot-progress{height:100%;width:0;background:white;transition:.2s}
+
+/* Lock */
+#lock{
+  position:fixed;inset:0;
+  background:linear-gradient(135deg,#111,#000);
+  display:flex;flex-direction:column;
+  justify-content:center;align-items:center;
+  z-index:9998;
+}
+#lock button{
+  margin-top:20px;
+  padding:10px 20px;
+  border:none;
+  border-radius:8px;
+  background:white;
+  color:black;
+  cursor:pointer;
+}
+
+/* Topbar */
+.topbar{
+  height:30px;
+  background:rgba(255,255,255,.08);
+  backdrop-filter:blur(10px);
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:0 15px;
+  font-size:14px;
+}
+
+.desktop{position:absolute;top:30px;bottom:90px;width:100%}
+
+/* Dock */
+.dock{
+  position:absolute;
+  bottom:15px;
+  left:50%;
+  transform:translateX(-50%);
+  background:rgba(255,255,255,.08);
+  backdrop-filter:blur(20px);
+  padding:15px 30px;
+  border-radius:30px;
+  display:flex;
+  gap:25px;
+}
+.dock div{
+  font-size:30px;
+  cursor:pointer;
+  transition:.2s;
+}
+.dock div:hover{transform:scale(1.3)}
+
+/* Windows */
+.window{
+  position:absolute;
+  width:500px;
+  height:320px;
+  background:rgba(30,30,30,.95);
+  border-radius:16px;
+  box-shadow:0 25px 60px rgba(0,0,0,.7);
+  overflow:hidden;
+}
+.window-header{
+  height:30px;
+  background:rgba(255,255,255,.05);
+  display:flex;
+  align-items:center;
+  padding:0 10px;
+  gap:8px;
+  cursor:move;
+}
+.btn{width:12px;height:12px;border-radius:50%}
+.red{background:#ff5f57}
+.yellow{background:#febc2e}
+.green{background:#28c840}
+.window-content{
+  padding:15px;
+  font-size:14px;
+  height:calc(100% - 30px);
+  overflow:auto;
+}
+.file{
+  padding:5px;
+  cursor:pointer;
+}
+.file:hover{
+  background:rgba(255,255,255,.1);
+}
+input,button{
+  padding:6px;
+  border-radius:6px;
+  border:none;
+}
+</style>
 </head>
 <body>
 
-  <!-- Top Bar -->
+<!-- Boot Screen -->
+<div id="boot">
+  <h1>LuminasOS</h1>
+  <div class="boot-bar">
+    <div class="boot-progress" id="bootProgress"></div>
+  </div>
+</div>
+
+<!-- Lock Screen -->
+<div id="lock" class="hidden">
+  <h2 id="lockTime"></h2>
+  <button onclick="unlock()">Déverrouiller</button>
+</div>
+
+<!-- System -->
+<div id="system" class="hidden">
   <div class="topbar">
-    <div class="logo"> LuminasOS</div>
+    <div>LuminasOS</div>
     <div id="clock"></div>
   </div>
 
-  <!-- Desktop -->
   <div class="desktop" id="desktop"></div>
 
-  <!-- Dock -->
   <div class="dock">
-    <div class="dock-icon" onclick="openApp('Finder')">📁</div>
-    <div class="dock-icon" onclick="openApp('Terminal')">💻</div>
-    <div class="dock-icon" onclick="openApp('Réglages')">⚙️</div>
+    <div onclick="openFinder()">📁</div>
+    <div onclick="openSettings()">⚙️</div>
+    <div onclick="lockSystem()">🔒</div>
   </div>
+</div>
 
-  <script src="script.js"></script>
+<script>
+/* ================= BOOT ================= */
+let progress=0;
+const bootInterval=setInterval(()=>{
+  progress+=10;
+  document.getElementById("bootProgress").style.width=progress+"%";
+  if(progress>=100){
+    clearInterval(bootInterval);
+    document.getElementById("boot").classList.add("hidden");
+    document.getElementById("lock").classList.remove("hidden");
+  }
+},150);
+
+/* ================= LOCK ================= */
+function updateLockTime(){
+  document.getElementById("lockTime").innerText=
+    new Date().toLocaleTimeString();
+}
+setInterval(updateLockTime,1000);
+updateLockTime();
+
+function unlock(){
+  document.getElementById("lock").classList.add("hidden");
+  document.getElementById("system").classList.remove("hidden");
+}
+
+function lockSystem(){
+  document.getElementById("system").classList.add("hidden");
+  document.getElementById("lock").classList.remove("hidden");
+}
+
+/* ================= CLOCK ================= */
+function updateClock(){
+  document.getElementById("clock").innerText=
+    new Date().toLocaleTimeString();
+}
+setInterval(updateClock,1000);
+updateClock();
+
+/* ================= WINDOW SYSTEM ================= */
+const desktop=document.getElementById("desktop");
+let z=1;
+
+function createWindow(title,content){
+  const win=document.createElement("div");
+  win.className="window";
+  win.style.top="100px";
+  win.style.left="150px";
+  win.style.zIndex=++z;
+
+  win.innerHTML=`
+    <div class="window-header">
+      <div class="btn red" onclick="this.closest('.window').remove()"></div>
+      <div class="btn yellow"></div>
+      <div class="btn green"></div>
+      <span style="margin-left:10px">${title}</span>
+    </div>
+    <div class="window-content">${content}</div>
+  `;
+
+  win.onmousedown=()=>win.style.zIndex=++z;
+  makeDraggable(win);
+  desktop.appendChild(win);
+}
+
+function makeDraggable(el){
+  const header=el.querySelector(".window-header");
+  let offsetX=0,offsetY=0,isDown=false;
+
+  header.onmousedown=(e)=>{
+    isDown=true;
+    offsetX=el.offsetLeft-e.clientX;
+    offsetY=el.offsetTop-e.clientY;
+  };
+
+  document.onmouseup=()=>isDown=false;
+
+  document.onmousemove=(e)=>{
+    if(!isDown)return;
+    el.style.left=(e.clientX+offsetX)+"px";
+    el.style.top=(e.clientY+offsetY)+"px";
+  };
+}
+
+/* ================= FILE SYSTEM ================= */
+if(!localStorage.getItem("files")){
+  localStorage.setItem("files",
+    JSON.stringify(["Document.txt","Notes.md"])
+  );
+}
+
+function openFinder(){
+  const files=JSON.parse(localStorage.getItem("files"));
+  let html="<button onclick='addFile()'>+ Nouveau fichier</button><hr>";
+  files.forEach(f=>{
+    html+="<div class='file'>📄 "+f+"</div>";
+  });
+  createWindow("Finder",html);
+}
+
+function addFile(){
+  const name=prompt("Nom du fichier");
+  if(!name)return;
+  const files=JSON.parse(localStorage.getItem("files"));
+  files.push(name);
+  localStorage.setItem("files",JSON.stringify(files));
+  alert("Fichier ajouté");
+}
+
+/* ================= SUPABASE ================= */
+const SUPABASE_URL="https://YOUR_PROJECT.supabase.co";
+const SUPABASE_KEY="YOUR_PUBLIC_ANON_KEY";
+let supabaseClient=null;
+
+function openSettings(){
+  const html=`
+    <h3>Connexion Supabase</h3>
+    <input id='email' placeholder='Email'><br><br>
+    <input id='password' type='password' placeholder='Mot de passe'><br><br>
+    <button onclick='login()'>Se connecter</button>
+    <div id='status'></div>
+  `;
+  createWindow("Réglages",html);
+}
+
+async function login(){
+  if(!supabaseClient){
+    supabaseClient=supabase.createClient(
+      SUPABASE_URL,
+      SUPABASE_KEY
+    );
+  }
+
+  const email=document.getElementById("email").value;
+  const password=document.getElementById("password").value;
+
+  const {data,error}=
+    await supabaseClient.auth.signInWithPassword({
+      email,password
+    });
+
+  document.getElementById("status").innerText=
+    error?error.message:"Connecté ✅";
+}
+</script>
+
 </body>
 </html>
