@@ -263,7 +263,7 @@ function addFile(){
 }
 
 /* ================= SUPABASE ================= */
-const SUPABASE_URL="https://YOUR_PROJECT.supabase.co";
+const SUPABASE_URL= "";
 const SUPABASE_KEY="YOUR_PUBLIC_ANON_KEY";
 let supabaseClient=null;
 
@@ -296,6 +296,23 @@ async function login(){
 
   document.getElementById("status").innerText=
     error?error.message:"Connecté ✅";
+}
+</script>
+  <script>
+async function login() {
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+
+  const response = await fetch("/api/login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password })
+  });
+
+  const result = await response.json();
+
+  document.getElementById("status").innerText =
+    result.success ? "Connecté ✅" : result.message;
 }
 </script>
 
